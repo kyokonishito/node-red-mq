@@ -1,0 +1,323 @@
+<html>
+
+<head>
+    <title> IBM MQ Messaging REST API</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-qriously@1.1.1/dist/vue-qriously.min.js"></script>
+
+    <!--- check and select from https://www.bootstrapcdn.com/bootswatch/ -->
+    <link href=" https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/cerulean/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/cerulean/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">> -->
+    <!-- <link href=" https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/cyborg/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">  -->
+    <!-- <link href=" https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/sketchy/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">  -->
+    <!-- <link href=" https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">  -->
+    <!-- <link href=" https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/sandstone/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">  -->
+    <!-- <link href=" https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/materia/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">  -->
+    <!-- <link href=" https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/litera/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">  -->
+    <!-- <link href=" https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/spacelab/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">  -->
+    <!-- <link href=" https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/superhero/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">  -->
+    <!-- <link href=" https://cdn.jsdelivr.net/npm/bootswatch@5.2.2/dist/darkly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">  -->
+
+
+<body>
+        
+    <div class="container">
+        <div id="app">
+            <div class="row">
+                <!-- <div class="col-sm-12"> -->
+                    <h1> <img src="https://ibm.box.com/shared/static/aatrzipl4jtmzisneel47cvzw9drzngf.png" width="50" alt="IBM MQ" />
+                         IBM MQ Messaging REST API</h1>
+                
+                <!-- </div> -->
+            </div>
+
+            
+            <div class="row">
+                <form>
+                    <fieldset>
+                      
+                      <legend>MQ Server 情報</legend>
+                      <div class="form-group">
+                        <label for="mq_hostname">Server hostname</label>
+                        <input type="text" class="form-control" v-model="mq_hostname" placeholder="Enter hostname">
+                      </div>
+                      <div class="form-group">
+                        <label for="qmgr_name">QMGR Name</label>
+                        <input type="text" class="form-control" v-model="qmgr_name" placeholder="Enter QMGR name">
+                      </div>
+                      <div class="form-group">
+                        <label for="q_name">Queue Name</label>
+                        <input type="text" class="form-control" v-model="q_name" placeholder="Enter Queue name">
+                      </div>
+                      <div class="form-group">
+                        <label for="mq_userid">userid</label>
+                        <input type="text" class="form-control" v-model="mq_userid" placeholder="Enter userid">
+                      </div>
+                      <div class="form-group">
+                        <label for="mq_password">Password</label>
+                        <input type="password" class="form-control" v-model="mq_password" placeholder="Password">
+                      </div>
+                    </fieldset>
+                </form>
+            </div>
+
+  
+            <div class="row">
+                <p> </p>
+            </div>
+
+            <div class="row">
+                <form>
+                    <fieldset>
+                      <legend>Put Message</legend>
+                      <div class="form-group">
+                        <label for="send_message">送付するMessage</label>
+                        <input type="text" class="form-control" v-model="send_message" placeholder="送付するMessage">
+                      </div>
+                     
+                    </fieldset>
+                    <button type="button" @click="sendMessage" class="btn btn-primary">送信</button>
+                </form>
+            </div>
+
+
+            
+            <div class="row">
+                <div class="col-sm-5" v-show="puttingMessage">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped  bg-danger progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0"
+                            aria-valuemax="100" style="width: 100%">
+                            Loading......
+            
+                        </div>
+                    </div>
+                </div>
+            
+            
+                <div v-show="!puttingMessage  && displayResults2" >
+
+                    <table class="table table-hover">
+                            <tbody>
+                                <tr >
+                                    <td>Result</td><td><span v-html="result"></span></td>
+                                </tr>
+                                <tr >
+                                    <td>status_code</td><td><span v-html="status_code"></span></td>
+                                </tr>
+                                <tr>
+                                    <td>ibm_mq_md_messageId</td><td><span v-html="ibm_mq_md_messageId"></span></td>
+                                </tr>
+                                <tr>
+                                    <td>Message</td><td><span v-text="return_message"></span></td>
+                                </tr>
+                            </tbody>
+                    </table>
+                    
+                </div>
+            </div>
+            <div class="row">
+                    <p> </p>
+            </div>
+
+            <div class="row">
+                <form>
+                    <fieldset>
+                        <legend>Get Message</legend>
+                    </fieldset>
+
+                    <button type="button" @click="getMessage" class="btn btn-primary">Get Message from <span v-html="q_name"></span></button>
+                </form>
+            </div>
+
+            <div class="row">
+                    <div class="col-sm-5" v-show="gettingMessage" >
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped  bg-danger progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0"
+                                aria-valuemax="100" style="width: 100%">
+                                Loading......
+                
+                            </div>
+                        </div>
+                    </div>
+                
+                
+                    <div v-show="!gettingMessage && displayResults3">
+
+                        <table class="table table-hover">
+                            
+                            <tbody>
+                                <tr >
+                                    <td>Result</td><td><span v-html="get_result"></span></td>
+                                </tr>
+                                <tr >
+                                    <td>status_code</td><td><span v-html="get_status_code"></span></td>
+                                </tr>
+                                <tr>
+                                    <td>ibm_mq_md_messageId</td><td><span v-html="get_ibm_mq_md_messageId"></span></td>
+                                </tr>
+                                <tr>
+                                    <td>Message</td><td><span v-text="get_return_message"></span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+    
+            <div class="row">
+                <p> </p>
+            </div>
+            
+            <div class="row">
+                <div class="col-sm-12" >
+                    このページのQRコード: <span v-html="url_value"></span>
+                </div>
+                <div class="col-sm-12">
+                    <qriously :value="url_value" />
+                </div>
+
+            </div>
+            <div class="row">
+                <p> </p>
+                <p> </p>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript"> 
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                mq_hostname: null,
+                qmgr_name: null,
+                q_name: null,
+                mq_userid: null,
+                mq_password: null,
+                send_message: null,
+                status_code: null,
+                ibm_mq_md_messageId: null,
+                result: null,
+                return_message: null,
+                get_status_code: null,
+                get_ibm_mq_md_messageId: null,
+                get_result: null,
+                get_return_message: null,
+                url_value: location.href,
+                puttingMessage: false,
+                answerPuttingMessage: null,
+                gettingMessage: false,
+                answerGettingMessage: null,
+                displayResults2: false,
+                displayResults3: false,
+                axios_timeout: 5000
+                
+            },
+            methods: {
+                
+                async sendMessage(){
+                    var url ="./send-message"
+
+                    var params = new URLSearchParams();
+
+                    params.append('mq_hostname', this.mq_hostname);
+                    params.append('qmgr_name', this.qmgr_name);
+                    params.append('q_name', this.q_name);
+                    params.append('mq_userid', this.mq_userid);
+                    params.append('mq_password', this.mq_password);
+                    params.append('send_message', this.send_message);
+                    
+                    try {
+                        this.puttingMessage = true
+
+                        // const headers = {  'Content-Type': 'application/json' }
+                        const response = await axios.post(url, params, {timeout: this.axios_timeout})
+                        this.answerPuttingMessage = response.header
+                        this.result = response.data['result']  
+                        this.return_message = response.data['message']  
+                        this.status_code = response.data['status_code']
+                        this.ibm_mq_md_messageId = response.data['ibm_mq_md_messageid']     
+
+                        console.log(response);
+                        console.log(this.answerPuttingMessage);
+
+                    } catch(e){
+                        console.log('ERR!');  
+                        console.log(e);
+                        if(e.name == "AxiosError"){
+                            this.result = e.name
+                            this.return_message = e.message
+                            this.status_code = e.code
+                        }
+                        else {
+                            this.result = e.response.data['result']  
+                            this.return_message = e.response.data['message']  
+                            this.status_code = e.response.data['status_code']
+                            this.ibm_mq_md_messageId = e.response.data['ibm_mq_md_messageid'] 
+                        }    
+                   
+                    } finally {                        
+                        this.puttingMessage = false
+                        this.displayResults2 = true
+                    }
+                },
+
+                async getMessage(){
+                    var url ="./get-message"
+                    var params = new URLSearchParams();
+
+                    params.append('mq_hostname', this.mq_hostname);
+                    params.append('qmgr_name', this.qmgr_name);
+                    params.append('q_name', this.q_name);
+                    params.append('mq_userid', this.mq_userid);
+                    params.append('mq_password', this.mq_password);
+                 
+
+                    try {
+                        this.gettingMessage = true
+
+                        // const headers = {  'Content-Type': 'application/json' }
+                        const response = await axios.post(url, params, {timeout: this.axios_timeout})
+                        this.answerGettingMessage = response.header
+                        if (response.status == 204){
+                            this.get_result = 'OK';
+                            this.get_return_message = 'No Content';
+                            this.get_status_code = response.status;
+                        } else {
+                            this.get_result = response.data['result']  
+                            this.get_return_message = response.data['message']  
+                            this.get_status_code = response.data['status_code']
+                            this.get_ibm_mq_md_messageId = response.data['ibm_mq_md_messageid']   
+                        }
+                        
+                        console.log(response);
+                        console.log(this.answerGettingMessage);
+
+                    } catch(e){
+                        console.log('ERR!');
+                        console.log(e);
+                        if(e.name == "AxiosError"){
+                            this.get_result = e.name
+                            this.get_return_message = e.message
+                            this.get_status_code = e.code
+                        }
+                        else {
+                        this.get_result = e.response.data['result']  
+                            this.get_return_message = e.response.data['message']  
+                            this.get_status_code = e.response.data['status_code']
+                            this.get_ibm_mq_md_messageId = e.response.data['ibm_mq_md_messageid']  
+                        }   
+
+                    } finally {
+                        this.gettingMessage = false
+                        this.displayResults3 = true
+                    }
+
+                }
+            }
+        })
+    </script>
+</body>
+</html>
