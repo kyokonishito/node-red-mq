@@ -283,8 +283,9 @@
                         this.answerGettingMessage = response.header
                         if (response.status == 204){
                             this.get_result = 'OK';
-                            this.get_return_message = 'No Content';
+                            this.get_return_message = 'No messages in ' + this.q_name;
                             this.get_status_code = response.status;
+                            this.get_ibm_mq_md_messageId = "";
                         } else {
                             this.get_result = response.data['result']  
                             this.get_return_message = response.data['message']  
